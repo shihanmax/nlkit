@@ -108,7 +108,7 @@ def weight_init(m):
 
 
 def check_should_do_early_stopping(
-    record, freeze_es_at_first, es_tolerance, acc_like=True,
+    record, freeze_es_at_first, es_tolerance, acc_like=True, verbose=False
 ):
     """Check should do early stopping.
 
@@ -140,14 +140,17 @@ def check_should_do_early_stopping(
     )
 
     if n_valid_times - idx_of_rightmost_max >= es_tolerance + 1:
-        print(
-            "Early Stopping now, metric record on valid set: {}".format(
-                record,
-            ),
-        )
-        print("The best epoch is ep{}".format(idx_of_rightmost_max))
+        if verbose:
+            print(
+                "Early Stopping now, metric record on valid set: {}".format(
+                    record,
+                ),
+            )
+            print("The best epoch is ep{}".format(idx_of_rightmost_max))
 
         return idx_of_rightmost_max
-    print("\nNo stopping, Metric Record of valid:{}\n".format(record))
+    
+    if verbose:
+        print("\nNo stopping, Metric Record of valid:{}\n".format(record))
 
-    return False
+    return 0
