@@ -1,0 +1,153 @@
+import torch.nn as nn
+import torch.nn.init as init
+
+
+def set_seed(seed_val: int, os_, random_, numpy_, torch_):
+    """Set random seed for build-in and external modules.
+
+    set global random seed for reproducibility for os, random, numpy and torch.
+
+    Args:
+        seed_val (int): random seed value
+        os_ (module): os
+        random_ (module): random
+        numpy_ (module): numpy
+        torch_ (module): torch
+
+    Usage:
+        >>> import os
+        >>> import torch
+        >>> import random
+        >>> import numpy as np
+
+        >>> os, random, np, torch = set_seed(0, os, random, np, torch)
+    """
+    # 1. Set `PYTHONHASHSEED` environment variable at a fixed value
+    os_.environ['PYTHONHASHSEED'] = str(seed_val)
+
+    # 2. Set `python` built-in pseudo-random generator at a fixed value
+    random_.seed(seed_val)
+
+    # 3. Set `numpy` pseudo-random generator at a fixed value
+    numpy_.random.seed(seed_val)
+
+    # 4. Set `pytorch` pseudo-random generator at a fixed value
+    torch_.manual_seed(seed_val)
+
+    return os_, random_, numpy_, torch_
+
+
+def weight_init(m):
+    """Init weight for torch modules.
+
+    Usage:
+        model = Model()
+        model.apply(weight_init)
+    """
+    if isinstance(m, nn.Conv1d):
+        init.normal_(m.weight.data)
+        if m.bias is not None:
+            init.normal_(m.bias.data)
+    elif isinstance(m, nn.Conv2d):
+        init.xavier_normal_(m.weight.data)
+        if m.bias is not None:
+            init.normal_(m.bias.data)
+    elif isinstance(m, nn.Conv3d):
+        init.xavier_normal_(m.weight.data)
+        if m.bias is not None:
+            init.normal_(m.bias.data)
+    elif isinstance(m, nn.ConvTranspose1d):
+        init.normal_(m.weight.data)
+        if m.bias is not None:
+            init.normal_(m.bias.data)
+    elif isinstance(m, nn.ConvTranspose2d):
+        init.xavier_normal_(m.weight.data)
+        if m.bias is not None:
+            init.normal_(m.bias.data)
+    elif isinstance(m, nn.ConvTranspose3d):
+        init.xavier_normal_(m.weight.data)
+        if m.bias is not None:
+            init.normal_(m.bias.data)
+    elif isinstance(m, nn.BatchNorm1d):
+        init.normal_(m.weight.data, mean=1, std=0.02)
+        init.constant_(m.bias.data, 0)
+    elif isinstance(m, nn.BatchNorm2d):
+        init.normal_(m.weight.data, mean=1, std=0.02)
+        init.constant_(m.bias.data, 0)
+    elif isinstance(m, nn.BatchNorm3d):
+        init.normal_(m.weight.data, mean=1, std=0.02)
+        init.constant_(m.bias.data, 0)
+    elif isinstance(m, nn.Linear):
+        init.xavier_normal_(m.weight.data)
+        if m.bias is not None:
+            init.normal_(m.bias.data)
+    elif isinstance(m, nn.LSTM):
+        for param in m.parameters():
+            if len(param.shape) >= 2:
+                init.orthogonal_(param.data)
+            else:
+                init.normal_(param.data)
+    elif isinstance(m, nn.LSTMCell):
+        for param in m.parameters():
+            if len(param.shape) >= 2:
+                init.orthogonal_(param.data)
+            else:
+                init.normal_(param.data)
+    elif isinstance(m, nn.GRU):
+        for param in m.parameters():
+            if len(param.shape) >= 2:
+                init.orthogonal_(param.data)
+            else:
+                init.normal_(param.data)
+    elif isinstance(m, nn.GRUCell):
+        for param in m.parameters():
+            if len(param.shape) >= 2:
+                init.orthogonal_(param.data)
+            else:
+                init.normal_(param.data)
+
+
+def check_should_do_early_stopping(
+    record, freeze_es_at_first, es_tolerance, acc_like=True,
+):
+    """Check should do early stopping.
+
+    Args:
+        acc_record (dict): metric on valid for judging early stopping
+        freeze_es_at_first (int): do not do early stopping at first x epoch
+        es_tolerance (int): early stopping with no improvement after x epoch
+        acc_like (bool): mark if the metric is like acc
+
+    Returns:
+        int: indicates should do early stopping or not,
+            0 means no stopping, otherwise,
+            a positive integer indicating the best epoch index.
+    """
+    # if not by acc-like metric, we multiply -1 to each record.
+    if not acc_like:
+        record = [-i for i in record]
+
+    if len(record) < freeze_es_at_first:
+        # freezing ES at the first x epochs
+        return False
+
+    n_valid_times = len(record)
+
+    max_metric = max(record)
+    
+    idx_of_rightmost_max = (
+        n_valid_times - 1 - record[::-1].index(max_metric)
+    )
+
+    if n_valid_times - idx_of_rightmost_max >= es_tolerance + 1:
+        print(
+            "Early Stopping now, metric record on valid set: {}".format(
+                record,
+            ),
+        )
+        print("The best epoch is ep{}".format(idx_of_rightmost_max))
+
+        return idx_of_rightmost_max
+    print("\nNo stopping, Metric Record of valid:{}\n".format(record))
+
+    return False
