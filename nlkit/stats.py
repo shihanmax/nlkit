@@ -15,7 +15,7 @@ def explore_data(arr, show_dist=True, title=None):
     be not available.
 
     Args:
-        arr (List): could be list of [int, float] or str
+        arr (List): could be list of [int, float, str]
         show_dist (bool, optional): Whether to show distribution. 
             Defaults to True.
     """
@@ -57,7 +57,7 @@ def explore_data(arr, show_dist=True, title=None):
             info[k] = round(v, 4)
             
             if k not in {"skew", "kurtosis", "total"} and from_string:
-                info[k] = "-"
+                info[k] = "-"  # drop meaningless info
         
         headline = "====== {} ======".format(title if title else "STAT")
         print(headline)
@@ -73,7 +73,7 @@ def explore_data(arr, show_dist=True, title=None):
     y = [i[1] for i in sorted_counter]
 
     plt.bar(x, y, color="orange")
-    plt.title("Freq. count")
+    plt.title("Freq. Count")
     plt.show()
 
 

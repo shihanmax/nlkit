@@ -12,6 +12,12 @@ setup(
     url='https://shihanmax.github.io',
     author='shihanmax',
     author_email='shihanmax@foxmail.com',
-    install_requires=[],
+    install_requires=[
+        "numpy>=1.17.0",
+        "scipy>=1.5.0",
+        "matplotlib>=3.0.0",
+        "torch>=1.6.0",
+        "gensim>=3.7.0",
+    ],
     packages=find_packages()
 )
