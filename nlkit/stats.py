@@ -81,8 +81,8 @@ def explore_text(source, show_dist=False, title=None):
     """Describe a sequence of text.
 
     Given `source`, an iterable object of text, or a single text, or a path,
-    read all lines of text, stats the length with explore_data(), the get the
-    unique tokens num.
+    read all lines from source, stats the length with explore_data(), then 
+    get the count of unique tokens.
     
     Args:
         source (str, iterable): text source
@@ -95,12 +95,12 @@ def explore_text(source, show_dist=False, title=None):
             of a text file, or a iterable object containing some strings.
             otherwise raises TypeError.
     """
-    if os.path.exists(source):
-        with open(source) as frd:
-            source = frd.readlines()
-             
-    elif isinstance(source, str):
-        source = [source]
+    if isinstance(source, str):
+        if os.path.exists(source):
+            with open(source) as frd:
+                source = frd.readlines()
+        else:
+            source = [source]
 
     elif not isinstance(source, (list, tuple)):
         raise TypeError(f"Unexpected input type:{type(source)}")
@@ -121,6 +121,3 @@ def explore_text(source, show_dist=False, title=None):
 
     # stat the length info
     explore_data(length, show_dist=show_dist, title="LENGTH STAT")
-
-
-explore_text("./utils.py")
