@@ -1,3 +1,5 @@
+from enum import Enum
+
 import torch.nn as nn
 import torch.nn.init as init
 
@@ -154,3 +156,11 @@ def check_should_do_early_stopping(
         print("\nNo stopping, Metric Record of valid:{}\n".format(record))
 
     return 0
+
+
+class Phase(Enum):
+    """Mark the training phase."""
+
+    TRAIN = 1
+    VALID = 2
+    TEST = 3
