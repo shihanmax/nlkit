@@ -1,3 +1,4 @@
+import os
 from collections import Counter
 
 import numpy as np
@@ -5,7 +6,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 
-def explore_data(arr, show_dist=True):
+def explore_data(arr, show_dist=True, title=None):
     """Get statistics on `arr`.
     
     get length/min/max/avg/25/50/75quantile/skew/kurtosis of `arr`
@@ -58,10 +59,11 @@ def explore_data(arr, show_dist=True):
             if k not in {"skew", "kurtosis", "total"} and from_string:
                 info[k] = "-"
         
-        print("====== stat ======")
+        headline = "====== {} ======".format(title if title else "STAT")
+        print(headline)
         for k, v in info.items():
             print(f" {k}: {v}")
-        print("==================\n")
+        print("=" * len(headline) + "\n")
 
     if not show_dist:
         return
@@ -73,3 +75,52 @@ def explore_data(arr, show_dist=True):
     plt.bar(x, y, color="orange")
     plt.title("Freq. count")
     plt.show()
+
+
+def explore_text(source, show_dist=False, title=None):
+    """Describe a sequence of text.
+
+    Given `source`, an iterable object of text, or a single text, or a path,
+    read all lines of text, stats the length with explore_data(), the get the
+    unique tokens num.
+    
+    Args:
+        source (str, iterable): text source
+        show_dist (bool, optional): if to show the length distribution. 
+            Defaults to False.
+        title (str, optional): title of the description. Defaults to None.
+
+    Raises:
+        TypeError: source should be a str object (a string), or a str filename
+            of a text file, or a iterable object containing some strings.
+            otherwise raises TypeError.
+    """
+    if os.path.exists(source):
+        with open(source) as frd:
+            source = frd.readlines()
+             
+    elif isinstance(source, str):
+        source = [source]
+
+    elif not isinstance(source, (list, tuple)):
+        raise TypeError(f"Unexpected input type:{type(source)}")
+
+    length = []
+    counter = Counter()
+    
+    for text in source:
+        text = text.strip()
+        length.append(len(text))
+        counter.update(Counter(text))
+    
+    headline = "====== {} ======".format(title if title else "TEXT STAT")
+    print(headline)
+    print(f" vocab count: {len(counter)}")
+    print(f" total lines: {len(length)}")
+    print("=" * len(headline) + "\n")
+
+    # stat the length info
+    explore_data(length, show_dist=show_dist, title="LENGTH STAT")
+
+
+explore_text("./utils.py")
