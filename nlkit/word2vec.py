@@ -96,7 +96,7 @@ def load_wv_model(
         str_to_idx[token] = cnt
         cnt += 1
 
-    embedding = torch.tensor(self.w2v.wv.vectors, dtype=torch.float64)
+    embedding = torch.tensor(w2v.wv.vectors, dtype=torch.float64)
 
     for_pad = torch.zeros(1, embedding.shape[1], dtype=embedding.dtype)
     for_unk = torch.randn(1, embedding.shape[1], dtype=embedding.dtype)
