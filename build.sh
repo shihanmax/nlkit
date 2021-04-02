@@ -1,4 +1,4 @@
-# !bin/bash
+# !/bin/bash
 echo "cleaning..."
 rm -rf build
 rm -rf dist
