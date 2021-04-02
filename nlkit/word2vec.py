@@ -1,3 +1,4 @@
+from collections import Counter
 import logging
 
 import torch
@@ -6,68 +7,110 @@ from gensim.models import Word2Vec
 logger = logging.getLogger(__file__)
 
 
-class Word2VecWrapper(object):
+def build_vocab_from_text_file(
+    file_path, keep_tokens=("<pad>", "<unk>", "<sos>", "<eos>"), 
+    freq_threshold=3, stop_words=(" ",),
+):
+    """Build vocab from a text file.
 
-    def __init__(self, w2v_model_path, binary):
-        self.w2v = None
-        self.size = None
+    Args:
+        file_path (str): text file path
+        keep_tokens (tuple, optional): preset tokens. 
+            Defaults to ("<pad>", "<unk>", "<sos>", "<eos>").
+        freq_threshold (int, optional): word frequency limition. Defaults to 3.
+        stop_words (iterable[str], optional): stop words that we don't want
+            keep in vocab. Defaults to (" ",).
 
-        self.pad = "<pad>"
-        self.unk = "<unk>"
-        self.start_decode_token = "<sos>"
-        self.end_decode_token = "<eos>"
+    Returns:
+        tuple: (str_to_idx: dict, idx_to_str: dict)
+    """
+    word_counter = Counter()
+    
+    with open(file_path, 'r') as frd:
+        for line in frd.readlines():
+            word_counter.update(Counter(line.strip()))
 
-        self.pad_idx = 0
-        self.unk_idx = 1
-        self.start_decode_idx = 2
-        self.end_decode_idx = 3
+    # remove stop words
+    if stop_words:
+        for word in stop_words:
+            word_counter.pop(word)
+    
+    str_to_idx = {}
+    idx_to_str = {}
+    cnt = 0
+    
+    for token in keep_tokens:
+        str_to_idx[token] = cnt
+        idx_to_str[cnt] = token
+        cnt += 1
+        
+    for word, freq in word_counter.items():
+        # filter words with frequency less than threshold
+        if freq < freq_threshold:
+            continue
+        str_to_idx[word] = cnt
+        idx_to_str[cnt] = word
+        cnt += 1
+         
+    return str_to_idx, idx_to_str
 
-        self.str_to_idx, self.idx_to_str, self.embedding = self._init_model(
-            w2v_model_path, binary,
-        )
 
-    def _init_model(self, w2v_model_path, binary):
-        try:
-            if binary:
-                self.w2v = Word2Vec.load(w2v_model_path)
-            else:
-                from gensim.models import KeyedVectors
-                self.w2v = KeyedVectors.load_word2vec_format(
-                    w2v_model_path, binary=False,
-                )
+def load_wv_model(
+    w2v_model_path, binary, keep_tokens=("<pad>", "<unk>", "<sos>", "<eos>"),
+):
+    """Load w2v model and build vocab with pretrained embeddings.
 
-            logger.info("Init: done loading existing w2v model")
+    Args:
+        w2v_model_path (str): w2v model path
+        binary (bool): indicates if the w2v a binary model
+        keep_tokens (tuple, optional): preset tokens. 
+            Defaults to ("<pad>", "<unk>", "<sos>", "<eos>").
 
-        except Exception as e:
-            raise Exception(
-                f"model load failed: {w2v_model_path} !"
-                f"message: {e}",
+    Raises:
+        Exception: raises when w2v model fails to load
+
+    Returns:
+        tuple: (str_to_idx: dict, idx_to_str: dict, embedding: torch.tensor)
+    """
+    try:
+        if binary:
+            w2v = Word2Vec.load(w2v_model_path)
+        else:
+            from gensim.models import KeyedVectors
+            w2v = KeyedVectors.load_word2vec_format(
+                w2v_model_path, binary=False,
             )
 
-        str_to_idx = {
-            self.unk: self.unk_idx,
-            self.pad: self.pad_idx,
-            self.start_decode_token: self.start_decode_idx,
-            self.end_decode_token: self.end_decode_idx,
-        }
+        logger.info("Init: done loading existing w2v model")
 
-        embedding = torch.tensor(self.w2v.wv.vectors, dtype=torch.float64)
-
-        for_pad = torch.zeros(1, embedding.shape[1], dtype=embedding.dtype)
-        for_unk = torch.randn(1, embedding.shape[1], dtype=embedding.dtype)
-        for_start = torch.zeros(1, embedding.shape[1], dtype=embedding.dtype)
-        for_end = torch.randn(1, embedding.shape[1], dtype=embedding.dtype)
-
-        embedding = torch.cat(
-            [for_pad, for_unk, for_start, for_end, embedding], dim=0,
+    except Exception as e:
+        raise Exception(
+            f"model load failed: {w2v_model_path} !"
+            f"message: {e}",
         )
 
-        for token in self.w2v.wv.vocab.keys():
-            # skip unk and pad, start, end
-            str_to_idx[token] = self.w2v.wv.vocab[token].index + 4
+    str_to_idx = {}
+    cnt = 0
+    
+    for token in keep_tokens:
+        str_to_idx[token] = cnt
+        cnt += 1
 
-        idx_to_str = {v: k for k, v in str_to_idx.items()}
+    embedding = torch.tensor(self.w2v.wv.vectors, dtype=torch.float64)
 
-        self.size = len(idx_to_str)
+    for_pad = torch.zeros(1, embedding.shape[1], dtype=embedding.dtype)
+    for_unk = torch.randn(1, embedding.shape[1], dtype=embedding.dtype)
+    for_start = torch.zeros(1, embedding.shape[1], dtype=embedding.dtype)
+    for_end = torch.randn(1, embedding.shape[1], dtype=embedding.dtype)
 
-        return str_to_idx, idx_to_str, embedding
+    embedding = torch.cat(
+        [for_pad, for_unk, for_start, for_end, embedding], dim=0,
+    )
+
+    for token in w2v.wv.vocab.keys():
+        # skip unk and pad, start, end
+        str_to_idx[token] = w2v.wv.vocab[token].index + len(keep_tokens)
+
+    idx_to_str = {v: k for k, v in str_to_idx.items()}
+
+    return str_to_idx, idx_to_str, embedding
