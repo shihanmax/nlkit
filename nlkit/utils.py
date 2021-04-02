@@ -110,9 +110,16 @@ def weight_init(m):
 
 
 def check_should_do_early_stopping(
-    record, freeze_es_at_first, es_tolerance, acc_like=True, verbose=False
+    record, freeze_es_at_first, es_tolerance, acc_like=True, verbose=False,
 ):
-    """Check should do early stopping.
+    """Check should do early stopping by the record.
+    
+    If the metric passed in is `acc_like`, which means "the larger the better",
+    this method will find the index of the maximum, if there are `es_tolerance`
+    more value after the maximum, returns the index, indicating that should do
+    early stopping and the best epoch index is `index`, otherwise returns 0.
+    
+    Otherwise, multiply -1 to each value in record and do above.
 
     Args:
         acc_record (dict): metric on valid for judging early stopping

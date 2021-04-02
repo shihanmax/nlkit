@@ -108,7 +108,7 @@ def load_wv_model(
     )
 
     for token in w2v.wv.vocab.keys():
-        # skip unk and pad, start, end
+        # skip unk, pad, start, end
         str_to_idx[token] = w2v.wv.vocab[token].index + len(keep_tokens)
 
     idx_to_str = {v: k for k, v in str_to_idx.items()}
