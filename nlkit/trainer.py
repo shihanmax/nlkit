@@ -13,14 +13,13 @@ class BaseTrainer(object):
     
     def __init__(
         self, model, train_data_loader, valid_data_loader, test_data_loader, 
-        lr_scheduler, optimizer, vocab, weight_init, summary_path, device,
+        lr_scheduler, optimizer, weight_init, summary_path, device, criterion,
+        total_epoch, model_path,
     ):
 
         self.device = device
 
-        self.vocab = vocab
         self.model = model.to(self.device)
-
         self.model.apply(weight_init)
 
         self.train_data_loader = train_data_loader
@@ -29,6 +28,10 @@ class BaseTrainer(object):
 
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
+        self.criterion = criterion
+        
+        self.total_epoch = total_epoch
+        self.model_path = model_path
 
         logger.info(
             "Trainer: Count parameters:{}".format(
@@ -58,6 +61,9 @@ class BaseTrainer(object):
     def test(self, epoch):
         self.model.eval()
         return self.iteration(epoch, self.test_data_loader, phase=Phase.TEST)
+    
+    def iteration(self, epoch, data_loader, phase):
+        raise NotImplementedError()
     
     def save_state_dict(self, epoch, save_to):
         output_path = save_to + ".ep{}".format(epoch)
@@ -98,9 +104,9 @@ class BaseTrainer(object):
     def start_train(self):
         # start training
         try:
-            for epoch in range(self.config.epoch):
+            for epoch in range(self.total_epoch):
                 self.train(epoch)
-                self.save_state_dict(epoch, self.config.model_path)
+                self.save_state_dict(epoch, self.model_path)
 
                 early_stop = self.valid(epoch)
                 if early_stop:

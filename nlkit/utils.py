@@ -2,6 +2,7 @@ from enum import Enum
 
 import torch.nn as nn
 import torch.nn.init as init
+from torch.optim.lr_scheduler import LambdaLR
 
 
 def set_seed(seed_val: int, os_, random_, numpy_, torch_):
@@ -171,3 +172,29 @@ class Phase(Enum):
     TRAIN = 1
     VALID = 2
     TEST = 3
+
+
+def get_linear_schedule_with_warmup_ep(
+    optimizer, num_warmup_epochs, total_epochs, last_epoch=-1,
+):
+    """Return Linear decay LambdaLR.
+
+    :param optimizer:
+    :param num_warmup_epochs:
+    :param num_training_epochs:
+    :param last_epoch:
+    :return:
+    """
+    def lr_lambda(current_epoch: int):
+        if current_epoch < num_warmup_epochs:
+            return max(
+                0.05,
+                float(current_epoch) / float(max(1, num_warmup_epochs)),
+            )
+
+        epochs_left = float(total_epochs - current_epoch)
+        epochs_no_wu = float(total_epochs - num_warmup_epochs)
+
+        return max(0.0, epochs_left / epochs_no_wu)
+
+    return LambdaLR(optimizer, lr_lambda, last_epoch)
