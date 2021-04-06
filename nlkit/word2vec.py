@@ -3,6 +3,8 @@ import logging
 
 import torch
 from gensim.models import Word2Vec
+from gensim.models.word2vec import PathLineSentences
+from gensim.models.callbacks import CallbackAny2Vec
 
 logger = logging.getLogger(__file__)
 
@@ -114,3 +116,76 @@ def load_wv_model(
     idx_to_str = {v: k for k, v in str_to_idx.items()}
 
     return str_to_idx, idx_to_str, embedding
+
+
+class Callback(CallbackAny2Vec):
+    """Callback to print loss after each epoch."""
+
+    def __init__(self):
+        self.epoch = 0
+        self.loss_previous_step = 0
+
+    def on_epoch_end(self, model):
+        loss = model.get_latest_training_loss()
+        if self.epoch == 0:
+            print('Loss after epoch {}: {}'.format(self.epoch, loss))
+        else:
+            print('Loss after epoch {}: {}'.format(
+                self.epoch, loss - self.loss_previous_step)
+            )
+        self.epoch += 1
+        self.loss_previous_step = loss
+
+
+def train_w2v_from_line_file(
+    train_from,
+    save_to,
+    epochs=200,
+    binary=False,
+    size=256,
+    min_count=1,
+    window=6,
+    sg=1,
+    hs=0,
+    negative=1,
+    seed=12,
+    callbacks=(Callback(),),
+    compute_loss=True,
+):
+    """Train w2v model from line file.
+
+    Words must be already preprocessed and separated by whitespace, saved in 
+    `train_from` one sentence per line.
+    
+    the trained model will be saved to `save_to`.
+
+    we can load the model through:
+        >>> from gensim.models.keyedvectors import KeyedVectors
+        >>> w2v = KeyedVectors.load_word2vec_format(save_to, binary=binary)
+    
+    or simply load w2v model and build vocab with pretrained embeddings 
+    by calling load_wv_model() defined above.
+    """
+    model = Word2Vec(
+        size=size,
+        min_count=min_count, 
+        window=window,
+        sg=sg,
+        hs=hs,
+        negative=negative,
+        seed=seed,
+        callbacks=callbacks,
+        compute_loss=compute_loss,
+    )
+
+    sentences = PathLineSentences(train_from)
+    model.build_vocab(sentences=sentences)
+
+    model.train(
+        sentences=sentences,
+        epochs=epochs,
+        total_examples=model.corpus_count,
+        compute_loss=compute_loss,
+    )
+
+    model.wv.save_word2vec_format(save_to, binary=binary)
