@@ -157,7 +157,7 @@ def train_w2v_from_line_file(
     Words must be already preprocessed and separated by whitespace, saved in 
     `train_from` one sentence per line.
     
-    the trained model will be saved to `save_to`.
+    the model will be saved to `save_to` after done training.
 
     we can load the model through:
         >>> from gensim.models.keyedvectors import KeyedVectors
