@@ -1,6 +1,8 @@
 # user defined files
 test.ipynb
 test.py
+build.sh
+build_n_reinstall.sh
 .DS_Store
 .idea
 .vscode

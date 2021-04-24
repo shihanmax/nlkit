@@ -3,7 +3,7 @@ import logging
 
 import torch
 from gensim.models import Word2Vec
-from gensim.models.word2vec import PathLineSentences
+from gensim.models.word2vec import PathLineSentences, LineSentence
 from gensim.models.callbacks import CallbackAny2Vec
 
 logger = logging.getLogger(__file__)
@@ -119,7 +119,7 @@ def load_wv_model(
 
 
 class Callback(CallbackAny2Vec):
-    """Callback to print loss after each epoch."""
+    """Callback for gensim to print loss after each epoch during training."""
 
     def __init__(self):
         self.epoch = 0
@@ -140,6 +140,7 @@ class Callback(CallbackAny2Vec):
 def train_w2v_from_line_file(
     train_from,
     save_to,
+    tokenize=None,
     epochs=200,
     binary=False,
     size=256,
@@ -154,6 +155,11 @@ def train_w2v_from_line_file(
 ):
     """Train w2v model from line file.
 
+    Args:
+        train_from (str): path of text file to train w2v
+        save_to (str): path save model to
+        tokenize (callable, optional): tokenizer, default to None.
+        
     Words must be already preprocessed and separated by whitespace, saved in 
     `train_from` one sentence per line.
     
@@ -178,6 +184,16 @@ def train_w2v_from_line_file(
         compute_loss=compute_loss,
     )
 
+    if tokenize:
+        assert isinstance(tokenize("foo bar"), list), "bad tokenizer!"
+        
+        all_lines = []
+        with open(train_from) as frd:
+            for line in frd.readlines():
+                all_lines.append(tokenize(line.strip()))
+    else:
+        sentences = LineSentence(train_from)
+                
     sentences = PathLineSentences(train_from)
     model.build_vocab(sentences=sentences)
 
@@ -189,3 +205,6 @@ def train_w2v_from_line_file(
     )
 
     model.wv.save_word2vec_format(save_to, binary=binary)
+
+
+train_w2v_from_line_file("utils.py", "test.wv")
