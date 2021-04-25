@@ -5,11 +5,11 @@ with open("./README.md") as frd:
 
 setup(
     name='nlkit',
-    version='0.0.1b',
+    version='0.0.1b1',
     description='easy to use nlp tools',
     long_description=long_description,
     license='MIT',
-    url='https://shihanmax.github.io',
+    url='https://shihanmax.top',
     author='shihanmax',
     author_email='shihanmax@foxmail.com',
     install_requires=[

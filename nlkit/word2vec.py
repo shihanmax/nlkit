@@ -53,7 +53,7 @@ def build_vocab_from_text_file(
         str_to_idx[word] = cnt
         idx_to_str[cnt] = word
         cnt += 1
-         
+
     return str_to_idx, idx_to_str
 
 
@@ -205,6 +205,3 @@ def train_w2v_from_line_file(
     )
 
     model.wv.save_word2vec_format(save_to, binary=binary)
-
-
-train_w2v_from_line_file("utils.py", "test.wv")
