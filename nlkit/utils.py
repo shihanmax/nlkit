@@ -12,7 +12,7 @@ def set_seed(seed_val: int, os_, random_, numpy_, torch_):
 
     Args:
         seed_val (int): random seed value
-        os_ (module): os
+        os_ (module): os 
         random_ (module): random
         numpy_ (module): numpy
         torch_ (module): torch

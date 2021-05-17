@@ -5,7 +5,7 @@ with open("./README.md") as frd:
 
 setup(
     name='nlkit',
-    version='0.0.1b1',
+    version='0.0.1c1',
     description='easy to use nlp tools',
     long_description=long_description,
     license='MIT',
@@ -16,8 +16,8 @@ setup(
         "numpy>=1.17.0",
         "scipy>=1.5.0",
         "matplotlib>=3.0.0",
-        "torch>=1.6.0",
-        "gensim>=3.7.0",
+        "torch>=1.2.0",
+        "gensim<=3.9.9",
     ],
     packages=find_packages()
 )
