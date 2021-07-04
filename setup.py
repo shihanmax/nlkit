@@ -5,8 +5,8 @@ with open("./README.md") as frd:
 
 setup(
     name='nlkit',
-    version='0.0.1c1',
-    description='easy to use nlp tools',
+    version='0.0.1c2',
+    description='Easy to use nlp tools',
     long_description=long_description,
     license='MIT',
     url='https://shihanmax.top',
@@ -18,6 +18,7 @@ setup(
         "matplotlib>=3.0.0",
         "torch>=1.2.0",
         "gensim<=3.9.9",
+        "rouge>=1.0.0",
     ],
     packages=find_packages()
 )
