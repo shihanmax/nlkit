@@ -36,7 +36,8 @@ def build_vocab_from_text_file(
     # remove stop words
     if stop_words:
         for word in stop_words:
-            word_counter.pop(word)
+            if word in word_counter:
+                word_counter.pop(word)
     
     str_to_idx = {}
     idx_to_str = {}
