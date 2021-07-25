@@ -11,7 +11,7 @@ logger = logging.getLogger(__file__)
 
 def build_vocab_from_text_file(
     file_path, keep_tokens=("<pad>", "<unk>", "<sos>", "<eos>"), 
-    freq_threshold=3, stop_words=(" ",),
+    freq_threshold=3, stop_words=(" ",), tokenizer=lambda x: list(x),
 ):
     """Build vocab from a text file.
 
@@ -22,6 +22,7 @@ def build_vocab_from_text_file(
         freq_threshold (int, optional): word frequency limition. Defaults to 3.
         stop_words (iterable[str], optional): stop words that we don't want
             keep in vocab. Defaults to (" ",).
+        tokenizer (callable): tokenizer.
 
     Returns:
         tuple: (str_to_idx: dict, idx_to_str: dict)
@@ -30,7 +31,7 @@ def build_vocab_from_text_file(
     
     with open(file_path, 'r') as frd:
         for line in frd.readlines():
-            word_counter.update(Counter(line.strip()))
+            word_counter.update(Counter(tokenizer(line.strip())))
 
     # remove stop words
     if stop_words:
