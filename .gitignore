@@ -3,6 +3,7 @@ test.ipynb
 test.py
 build.sh
 build_n_reinstall.sh
+upload.sh
 .DS_Store
 .idea
 .vscode

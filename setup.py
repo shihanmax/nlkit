@@ -5,7 +5,7 @@ with open("./README.md") as frd:
 
 setup(
     name='nlkit',
-    version='0.0.1c2',
+    version='0.0.2rc1',
     description='Easy to use nlp tools',
     long_description=long_description,
     license='MIT',
