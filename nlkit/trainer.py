@@ -14,13 +14,17 @@ class BaseTrainer(object):
     def __init__(
         self, model, train_data_loader, valid_data_loader, test_data_loader, 
         lr_scheduler, optimizer, weight_init, summary_path, device, criterion,
-        total_epoch, model_path,
+        total_epoch, model_path, 
     ):
 
+        logger.warning("@param: 'criterion'  will  be deprecated soon.")
+        
         self.device = device
 
         self.model = model.to(self.device)
-        self.model.apply(weight_init)
+        
+        if weight_init is not None:
+            self.model.apply(weight_init)
 
         self.train_data_loader = train_data_loader
         self.valid_data_loader = valid_data_loader
@@ -64,6 +68,26 @@ class BaseTrainer(object):
     
     def iteration(self, epoch, data_loader, phase):
         raise NotImplementedError()
+       
+    def get_global_step(self, phase):
+        if phase is Phase.TRAIN:
+            global_step = self.global_train_step
+        elif phase is Phase.VALID:
+            global_step = self.global_valid_step
+        elif phase is Phase.TEST:
+            global_step = self.global_test_step
+        else:
+            raise ValueError(f"invalid phase:{phase.name}")
+        
+        return global_step
+        
+    def record_step(self, phase):           
+        if phase == Phase.TRAIN:
+            self.global_train_step += 1
+        elif phase == Phase.VALID:
+            self.global_valid_step += 1
+        else:
+            self.global_test_step += 1
     
     def save_state_dict(self, epoch, save_to):
         output_path = save_to + ".ep{}".format(epoch)
@@ -121,6 +145,8 @@ class BaseTrainer(object):
             if early_stop:
                 return early_stop
 
+            self._callback_finish_training()
+            
         except KeyboardInterrupt:
             logger.info(
                 "Early stopping by KeyboardInterrupt, "
@@ -130,3 +156,18 @@ class BaseTrainer(object):
             for record in self.train_record:
                 logger.info(record)
                 logger.info("\n")
+                
+            self._callback_caught_exception()
+            
+        finally:
+            
+            self._callback_finally()
+
+    def _callback_finish_training(*args, **kwargs):
+        pass
+    
+    def _callback_caught_exception(*args, **kwargs):
+        pass
+    
+    def _callback_finally(*args, **kwargs):
+        pass
