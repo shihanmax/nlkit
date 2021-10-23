@@ -14,7 +14,7 @@ class RougeHandler(object):
             ground_truth_list (List[str]): list of strings splitted by space
 
         Returns:
-            dict, rouge 1-2-l score, like:
+            dict, rouge 1-2-l score, like,
             {
                 'rouge-1': {'f': 0.4786, 'p': 0.6363, 'r': 0.3835},
                 'rouge-2': {'f': 0.2608, 'p': 0.3488, 'r': 0.2083},
